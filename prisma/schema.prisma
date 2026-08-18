@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Instructor {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  email         String?  @unique
+  phone         String?
+  photo_url     String?
+  summary       String? // ringkasan AI (2-3 kalimat)
+  years_exp     Int?
+  location      String?
+  availability  String? // "Available" / "Booked" / "Part-time"
+  cv_raw_text   String? // teks mentah PDF
+  cv_file_url   String? // Supabase Storage URL
+  embedding     String? // JSON array of floats (768-dim) — disimpan sebagai text
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  competencies   InstructorCompetency[]
+  certifications InstructorCertification[]
+  match_results  MatchResult[]
+}
+
+model Competency {
+  id          String @id @default(uuid()) @db.Uuid
+  name        String @unique
+  category    String? // Engineering / Soft Skills / Sertifikasi / HSE
+  instructors InstructorCompetency[]
+}
+
+model InstructorCompetency {
+  instructor_id String   @db.Uuid
+  competency_id String   @db.Uuid
+  level         String?  // Beginner / Intermediate / Expert
+  instructor    Instructor @relation(fields: [instructor_id], references: [id], onDelete: Cascade)
+  competency    Competency @relation(fields: [competency_id], references: [id], onDelete: Cascade)
+  @@unique([instructor_id, competency_id])
+}
+
+model InstructorCertification {
+  id            String     @id @default(uuid()) @db.Uuid
+  instructor_id String     @db.Uuid
+  name          String
+  issuer        String?
+  year          Int?
+  valid_until   DateTime?
+  instructor    Instructor @relation(fields: [instructor_id], references: [id], onDelete: Cascade)
+}
+
+model TrainingRequest {
+  id          String   @id @default(uuid()) @db.Uuid
+  topic       String
+  description String?
+  embedding   String? // JSON array of floats (768-dim)
+  created_at  DateTime @default(now())
+  results     MatchResult[]
+}
+
+model MatchResult {
+  id            String          @id @default(uuid()) @db.Uuid
+  request_id    String          @db.Uuid
+  instructor_id String          @db.Uuid
+  score         Float
+  reason        String?
+  request       TrainingRequest @relation(fields: [request_id], references: [id], onDelete: Cascade)
+  instructor    Instructor      @relation(fields: [instructor_id], references: [id], onDelete: Cascade)
+}
