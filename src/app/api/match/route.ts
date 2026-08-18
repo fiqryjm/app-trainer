@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const scored = instructors
       .map((ins) => ({
         instructor: ins,
-        score: cosine(reqEmb, (ins.embedding as unknown as number[]) || []),
+        score: cosine(reqEmb, safeParse(ins.embedding)),
       }))
       .filter((x) => x.score > 0.3)
       .sort((a, b) => b.score - a.score)
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       data: {
         topic,
         description: description || null,
-        embedding: reqEmb as any,
+        embedding: JSON.stringify(reqEmb) as any,
         results: {
           create: scored.map((s) => ({
             instructor_id: s.instructor.id,

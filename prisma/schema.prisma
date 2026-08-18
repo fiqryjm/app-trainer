@@ -20,7 +20,7 @@ model Instructor {
   availability  String? // "Available" / "Booked" / "Part-time"
   cv_raw_text   String? // teks mentah PDF
   cv_file_url   String? // Supabase Storage URL
-  embedding     Unsupported("vector(768)")?
+  embedding     String? // JSON array of floats (768-dim) — disimpan sebagai text
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
@@ -59,7 +59,7 @@ model TrainingRequest {
   id          String   @id @default(uuid()) @db.Uuid
   topic       String
   description String?
-  embedding   Unsupported("vector(768)")?
+  embedding   String? // JSON array of floats (768-dim)
   created_at  DateTime @default(now())
   results     MatchResult[]
 }

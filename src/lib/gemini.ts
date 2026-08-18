@@ -96,3 +96,10 @@ export function cosine(a: number[], b: number[]): number {
   if (na === 0 || nb === 0) return 0;
   return dot / (Math.sqrt(na) * Math.sqrt(nb));
 }
+
+// Parse embedding stored as JSON string
+export function safeParse(emb: any): number[] {
+  if (!emb) return [];
+  if (Array.isArray(emb)) return emb;
+  try { return JSON.parse(emb); } catch { return []; }
+}

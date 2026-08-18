@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         summary,
         cv_file_url,
         cv_raw_text,
-        embedding: embedding ? (embedding as any) : undefined,
+        embedding: embedding ? JSON.stringify(embedding) : undefined,
         competencies: { create: compConnect },
         certifications: { create: (certifications || []).map((c: any) => ({
           name: c.name, issuer: c.issuer ?? null, year: c.year ?? null,
