@@ -31,6 +31,7 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(instructors);
   } catch (e: any) {
+    console.error('GET /api/instructors ERROR:', e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
