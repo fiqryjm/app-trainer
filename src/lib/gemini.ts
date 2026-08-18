@@ -1,5 +1,6 @@
 const GEMINI_KEY = process.env.GEMINI_API_KEY!;
 const EMBED_MODEL = 'text-embedding-004';
+const EXTRACT_MODEL = 'gemini-2.0-flash';
 
 // Extract structured data from a CV (PDF passed as base64 data URL)
 // Returns parsed JSON matching Instructor shape
@@ -7,7 +8,7 @@ export async function extractCvWithGemini(
   pdfBase64: string,
   mimeType = 'application/pdf'
 ): Promise<any> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${EXTRACT_MODEL}:generateContent?key=${GEMINI_KEY}`;
 
   const prompt = `Anda adalah ekstraktor CV profesional untuk perusahaan training (FJM) yang fokus sektor energi (migas, geothermal, pembangkit, petrokimia, mining). 
 Ekstrak informasi berikut dari CV ini dan KEMBALIKAN HANYA JSON (tanpa markdown, tanpa teks lain):

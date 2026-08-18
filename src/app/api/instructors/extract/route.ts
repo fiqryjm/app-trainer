@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ extracted, cv_file_url: publicUrl });
   } catch (e: any) {
-    console.error(e);
-    return NextResponse.json({ error: e.message || 'extract failed' }, { status: 500 });
+    console.error('EXTRACT ERROR:', e?.response?.data || e?.message || e);
+    return NextResponse.json({ error: e?.message || 'extract failed', detail: e?.response?.data?.error?.message }, { status: 500 });
   }
 }
