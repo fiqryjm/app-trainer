@@ -13,6 +13,7 @@ export async function GET(
       include: {
         competencies: { include: { competency: true } },
         certifications: true,
+        teaching_topics: { orderBy: { created_at: 'asc' } },
       },
     });
     if (!instructor) {
@@ -35,7 +36,7 @@ export async function PATCH(
     const body = await request.json();
     const {
       name, email, phone, years_exp, location, availability, summary,
-      competencies, certifications,
+      competencies, certifications, teaching_topics,
     } = body;
 
     // Basic field update
@@ -91,12 +92,23 @@ export async function PATCH(
       }
     }
 
+    // Update teaching topics if provided
+    if (Array.isArray(teaching_topics)) {
+      await prisma.teachingTopic.deleteMany({ where: { instructor_id: id } });
+      for (const t of teaching_topics) {
+        const topic = typeof t === 'string' ? t.trim() : '';
+        if (!topic) continue;
+        await prisma.teachingTopic.create({ data: { instructor_id: id, topic } });
+      }
+    }
+
     const updated = await prisma.instructor.update({
       where: { id },
       data: updateData,
       include: {
         competencies: { include: { competency: true } },
         certifications: true,
+        teaching_topics: { orderBy: { created_at: 'asc' } },
       },
     });
     return NextResponse.json(updated);

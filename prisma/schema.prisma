@@ -24,9 +24,10 @@ model Instructor {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
-  competencies   InstructorCompetency[]
-  certifications InstructorCertification[]
-  match_results  MatchResult[]
+  competencies     InstructorCompetency[]
+  certifications   InstructorCertification[]
+  teaching_topics  TeachingTopic[]
+  match_results    MatchResult[]
 }
 
 model Competency {
@@ -52,6 +53,14 @@ model InstructorCertification {
   issuer        String?
   year          Int?
   valid_until   DateTime?
+  instructor    Instructor @relation(fields: [instructor_id], references: [id], onDelete: Cascade)
+}
+
+model TeachingTopic {
+  id            String     @id @default(uuid()) @db.Uuid
+  instructor_id String     @db.Uuid
+  topic         String
+  created_at    DateTime   @default(now())
   instructor    Instructor @relation(fields: [instructor_id], references: [id], onDelete: Cascade)
 }
 

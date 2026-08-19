@@ -42,6 +42,35 @@ function EditCompetenciesModal({ ins, onClose, onSave }: { ins: any; onClose: ()
   );
 }
 
+function EditTeachingModal({ ins, onClose, onSave }: { ins: any; onClose: () => void; onSave: (list: string[]) => void }) {
+  const [text, setText] = useState((ins.teaching_topics || []).map((t: any) => t.topic).join("\n"));
+
+  const handleSave = () => {
+    const list = text.split("\n").map((s: string) => s.trim()).filter(Boolean);
+    onSave(list);
+  };
+
+  return (
+    <Modal title="✏️ Edit Pengalaman Mengajar" onClose={onClose} wide>
+      <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12, marginTop: 0 }}>
+        Satu judul training/topik per baris. Data lama akan diganti dengan daftar ini.
+      </p>
+      <textarea
+        className="field-textarea"
+        rows={14}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder={"Distributed Control Systems (DCS): Theory & Practice\nPLC (Basic, Advanced)\nInstrumentation & Process Control"}
+        style={{ fontFamily: "monospace", fontSize: 13 }}
+      />
+      <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+        <button onClick={handleSave} className="btn btn-success">💾 Simpan Topik</button>
+        <button onClick={onClose} className="btn btn-outline">Batal</button>
+      </div>
+    </Modal>
+  );
+}
+
 function EditCertificationsModal({ ins, onClose, onSave }: { ins: any; onClose: () => void; onSave: (list: { name: string; issuer: string; year: string }[]) => void }) {
   const [certs, setCerts] = useState<{ name: string; issuer: string; year: string }[]>(
     (ins.certifications || []).map((c: any) => ({ name: c.name, issuer: c.issuer ?? "", year: c.year ? String(c.year) : "" }))
@@ -256,6 +285,7 @@ export default function InstructorDetailPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showEditComps, setShowEditComps] = useState(false);
   const [showEditCerts, setShowEditCerts] = useState(false);
+  const [showEditTeaching, setShowEditTeaching] = useState(false);
   const [showReupload, setShowReupload] = useState(false);
 
   const { data: ins, isLoading, isError } = useQuery({
@@ -303,6 +333,18 @@ export default function InstructorDetailPage() {
       return r.json();
     },
     onSuccess: () => { invalidate(); setShowEditCerts(false); },
+  });
+
+  const saveTeachingMut = useMutation({
+    mutationFn: async (teaching_topics: string[]) => {
+      const r = await fetch(`/api/instructors/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teaching_topics }),
+      });
+      return r.json();
+    },
+    onSuccess: () => { invalidate(); setShowEditTeaching(false); },
   });
 
   const deleteMut = useMutation({
@@ -543,6 +585,43 @@ export default function InstructorDetailPage() {
         </div>
       </div>
 
+      {/* Teaching Topics */}
+      <div className="card" style={{ marginTop: 20 }}>
+        <div className="card-header">
+          <h2>📋 Pengalaman Mengajar</h2>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span className="badge badge-gray">{(ins.teaching_topics || []).length} topik</span>
+            <button onClick={() => setShowEditTeaching(true)} className="btn btn-outline" style={{ padding: "5px 12px", fontSize: 12 }}>
+              ✏️ Edit
+            </button>
+          </div>
+        </div>
+        <div className="card-body">
+          {(ins.teaching_topics || []).length === 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "16px 0" }}>
+              <p style={{ color: "var(--text-muted)", fontSize: 13, margin: 0 }}>Belum ada topik training terdaftar</p>
+              <button onClick={() => setShowEditTeaching(true)} className="btn btn-outline" style={{ fontSize: 12 }}>+ Tambah Topik</button>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 8 }}>
+              {(ins.teaching_topics || []).map((t: any, i: number) => (
+                <div key={t.id} style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "9px 12px",
+                  background: "var(--surface-2)",
+                  borderRadius: 8,
+                  border: "1px solid var(--border)",
+                  fontSize: 13,
+                }}>
+                  <span style={{ color: "var(--brand)", fontWeight: 600, fontSize: 11, minWidth: 20 }}>{i + 1}.</span>
+                  <span style={{ color: "var(--text-secondary)", lineHeight: 1.4 }}>{t.topic}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* CV raw text */}
       {ins.cv_raw_text && (
         <div className="card" style={{ marginTop: 20 }}>
@@ -577,6 +656,14 @@ export default function InstructorDetailPage() {
           ins={ins}
           onClose={() => setShowEditCerts(false)}
           onSave={(list) => saveCertsMut.mutate(list)}
+        />
+      )}
+
+      {showEditTeaching && (
+        <EditTeachingModal
+          ins={ins}
+          onClose={() => setShowEditTeaching(false)}
+          onSave={(list) => saveTeachingMut.mutate(list)}
         />
       )}
 
