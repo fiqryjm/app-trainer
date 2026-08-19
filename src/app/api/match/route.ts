@@ -17,6 +17,7 @@ export async function POST(request: Request) {
       include: {
         competencies: { include: { competency: true } },
         certifications: true,
+        teaching_topics: true,
       },
     });
 
@@ -39,10 +40,10 @@ export async function POST(request: Request) {
           create: scored.map((s) => ({
             instructor_id: s.instructor.id,
             score: s.score,
-            reason: (s.instructor.competencies || [])
-              .map((c) => c.competency.name)
-              .slice(0, 5)
-              .join(', '),
+            reason: [
+              ...(s.instructor.competencies || []).map((c) => c.competency.name).slice(0, 3),
+              ...(s.instructor.teaching_topics || []).map((t) => t.topic).slice(0, 3),
+            ].join(', '),
           })),
         },
       },
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
         score: s.score,
         competencies: (s.instructor.competencies || []).map((c) => c.competency.name),
         certifications: (s.instructor.certifications || []).map((c) => c.name),
+        teaching_topics: (s.instructor.teaching_topics || []).map((t) => t.topic),
         availability: s.instructor.availability,
       })),
     });

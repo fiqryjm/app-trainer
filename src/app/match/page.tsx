@@ -224,13 +224,33 @@ export default function MatchPage() {
                   </div>
 
                   {m.certifications.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
                       {m.certifications.slice(0, 5).map((c: string) => (
                         <span key={c} className="badge badge-blue">{c}</span>
                       ))}
                       {m.certifications.length > 5 && (
                         <span className="badge badge-gray">+{m.certifications.length - 5} lainnya</span>
                       )}
+                    </div>
+                  )}
+
+                  {m.teaching_topics && m.teaching_topics.length > 0 && (
+                    <div style={{ marginTop: 8 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--text-muted)", marginBottom: 6 }}>
+                        📋 Topik yang pernah diajarkan
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                        {m.teaching_topics.slice(0, 4).map((t: string) => (
+                          <span key={t} style={{
+                            fontSize: 11.5, padding: "3px 8px",
+                            background: "var(--surface-2)", border: "1px solid var(--border)",
+                            borderRadius: 6, color: "var(--text-secondary)",
+                          }}>{t}</span>
+                        ))}
+                        {m.teaching_topics.length > 4 && (
+                          <span className="badge badge-gray">+{m.teaching_topics.length - 4} topik lainnya</span>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

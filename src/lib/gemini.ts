@@ -79,14 +79,16 @@ export function buildEmbedText(d: {
   competencies?: string[];
   certifications?: { name: string }[];
   experience_highlights?: string[];
+  teaching_topics?: string[];
 }): string {
   const parts = [
     d.summary ?? '',
     (d.competencies ?? []).join(', '),
     (d.certifications ?? []).map((c) => c.name).join(', '),
     (d.experience_highlights ?? []).join(' '),
+    (d.teaching_topics ?? []).join(' | '),
   ];
-  return parts.join(' | ');
+  return parts.filter(Boolean).join(' | ');
 }
 
 // Cosine similarity
