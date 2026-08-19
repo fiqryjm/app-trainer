@@ -8,6 +8,7 @@ export default function MatchPage() {
   const [sector, setSector] = useState("");
   const [description, setDescription] = useState("");
   const [results, setResults] = useState<any[]>([]);
+  const [searchMode, setSearchMode] = useState<"ai" | "topic" | null>(null);
   const [searched, setSearched] = useState(false);
 
   const matchMut = useMutation({
@@ -24,6 +25,23 @@ export default function MatchPage() {
     },
     onSuccess: (data) => {
       setResults(data.matches || []);
+      setSearchMode("ai");
+      setSearched(true);
+    },
+  });
+
+  const byTopicMut = useMutation({
+    mutationFn: async () => {
+      const r = await fetch("/api/match/by-topic", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic }),
+      });
+      return r.json();
+    },
+    onSuccess: (data) => {
+      setResults(data.matches || []);
+      setSearchMode("topic");
       setSearched(true);
     },
   });
@@ -95,25 +113,34 @@ export default function MatchPage() {
             />
           </div>
 
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             <button
               onClick={() => matchMut.mutate()}
-              disabled={!topic || matchMut.isPending}
+              disabled={!topic || matchMut.isPending || byTopicMut.isPending}
               className="btn btn-primary"
               style={{ minWidth: 180 }}
             >
               {matchMut.isPending ? (
-                <>
-                  <span className="spinner" />
-                  Mencari instruktur…
-                </>
+                <><span className="spinner" />Mencari instruktur…</>
               ) : (
                 <>🤖 Cari Instruktur Terbaik</>
               )}
             </button>
+            <button
+              onClick={() => byTopicMut.mutate()}
+              disabled={!topic || matchMut.isPending || byTopicMut.isPending}
+              className="btn btn-outline"
+              style={{ minWidth: 210 }}
+            >
+              {byTopicMut.isPending ? (
+                <><span className="spinner" />Mencari…</>
+              ) : (
+                <>📋 Cari Berdasarkan Topik Mengajar</>
+              )}
+            </button>
             {searched && (
               <button
-                onClick={() => { setResults([]); setSearched(false); setTopic(""); setDescription(""); }}
+                onClick={() => { setResults([]); setSearched(false); setSearchMode(null); setTopic(""); setSector(""); setDescription(""); }}
                 className="btn btn-outline"
               >
                 Reset
@@ -180,7 +207,11 @@ export default function MatchPage() {
       {results.length > 0 && (
         <div>
           <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16, fontWeight: 500 }}>
-            🏆 Ditemukan <strong>{results.length}</strong> instruktur untuk topik "<em>{topic}</em>"
+            {searchMode === "topic" ? (
+              <>📋 Ditemukan <strong>{results.length}</strong> instruktur yang pernah mengajar topik "<em>{topic}</em>"</>
+            ) : (
+              <>🏆 Ditemukan <strong>{results.length}</strong> instruktur untuk topik "<em>{topic}</em>"</>
+            )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {results.map((m, idx) => (
@@ -201,16 +232,29 @@ export default function MatchPage() {
 
                   <div className="match-score">
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 22, fontWeight: 800, color: scoreColor(m.score), lineHeight: 1 }}>
-                        {(m.score * 100).toFixed(0)}%
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Skor Kecocokan</div>
+                      {searchMode === "topic" ? (
+                        <>
+                          <div style={{ fontSize: 22, fontWeight: 800, color: "var(--success)", lineHeight: 1 }}>
+                            {m.match_count}
+                          </div>
+                          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Topik Cocok</div>
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: 22, fontWeight: 800, color: scoreColor(m.score), lineHeight: 1 }}>
+                            {(m.score * 100).toFixed(0)}%
+                          </div>
+                          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Skor Kecocokan</div>
+                        </>
+                      )}
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <div className="score-bar">
-                        <div className="score-fill" style={{ width: `${Math.min(m.score * 100, 100)}%`, background: `linear-gradient(90deg, ${scoreColor(m.score)}, ${scoreColor(m.score)}aa)` }} />
+                    {searchMode === "ai" && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <div className="score-bar">
+                          <div className="score-fill" style={{ width: `${Math.min(m.score * 100, 100)}%`, background: `linear-gradient(90deg, ${scoreColor(m.score)}, ${scoreColor(m.score)}aa)` }} />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
@@ -244,15 +288,21 @@ export default function MatchPage() {
                         📋 Topik yang pernah diajarkan
                       </div>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                        {m.teaching_topics.slice(0, 4).map((t: string) => (
-                          <span key={t} style={{
-                            fontSize: 11.5, padding: "3px 8px",
-                            background: "var(--surface-2)", border: "1px solid var(--border)",
-                            borderRadius: 6, color: "var(--text-secondary)",
-                          }}>{t}</span>
-                        ))}
-                        {m.teaching_topics.length > 4 && (
-                          <span className="badge badge-gray">+{m.teaching_topics.length - 4} topik lainnya</span>
+                        {m.teaching_topics.slice(0, searchMode === "topic" ? 20 : 4).map((t: string) => {
+                          const isMatched = searchMode === "topic" && m.matched_topics?.includes(t);
+                          return (
+                            <span key={t} style={{
+                              fontSize: 11.5, padding: "3px 8px",
+                              background: isMatched ? "#f0fdf4" : "var(--surface-2)",
+                              border: `1px solid ${isMatched ? "#86efac" : "var(--border)"}`,
+                              borderRadius: 6,
+                              color: isMatched ? "#15803d" : "var(--text-secondary)",
+                              fontWeight: isMatched ? 600 : 400,
+                            }}>{isMatched ? "✓ " : ""}{t}</span>
+                          );
+                        })}
+                        {m.teaching_topics.length > (searchMode === "topic" ? 20 : 4) && (
+                          <span className="badge badge-gray">+{m.teaching_topics.length - (searchMode === "topic" ? 20 : 4)} topik lainnya</span>
                         )}
                       </div>
                     </div>
