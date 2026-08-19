@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             {/* Sidebar */}
             <aside className="sidebar">
               <div className="sidebar-logo">
-                <div className="sidebar-logo-icon">🎯</div>
+                <img src="/fjm-logo.png" alt="FJM Logo" className="sidebar-logo-img" />
                 <h1>FJM Trainer</h1>
                 <p>Instructor Database</p>
               </div>

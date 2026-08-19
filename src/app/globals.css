@@ -63,14 +63,11 @@ body {
   border-bottom: 1px solid rgba(255,255,255,.06);
 }
 
-.sidebar-logo-icon {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
+.sidebar-logo-img {
+  height: 40px;
+  width: auto;
   margin-bottom: 12px;
-  box-shadow: 0 4px 12px rgba(99,102,241,.4);
+  display: block;
 }
 
 .sidebar-logo h1 {
