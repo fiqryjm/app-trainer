@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { embedText, buildEmbedText } from '@/lib/gemini';
 
 // GET /api/instructors/[id]
 export async function GET(
@@ -99,6 +100,34 @@ export async function PATCH(
         const topic = typeof t === 'string' ? t.trim() : '';
         if (!topic) continue;
         await prisma.teachingTopic.create({ data: { instructor_id: id, topic } });
+      }
+    }
+
+    // Re-generate embedding jika ada perubahan data substantif
+    const shouldReEmbed = Array.isArray(competencies) || Array.isArray(certifications) || Array.isArray(teaching_topics) || summary !== undefined;
+    if (shouldReEmbed) {
+      try {
+        // Fetch data terbaru untuk membangun embedding
+        const latest = await prisma.instructor.findUnique({
+          where: { id },
+          include: {
+            competencies: { include: { competency: true } },
+            certifications: true,
+            teaching_topics: true,
+          },
+        });
+        if (latest) {
+          const embText = buildEmbedText({
+            summary: updateData.summary ?? latest.summary ?? undefined,
+            competencies: (latest.competencies || []).map((c) => c.competency.name),
+            certifications: (latest.certifications || []).map((c) => ({ name: c.name })),
+            teaching_topics: (latest.teaching_topics || []).map((t) => t.topic),
+          });
+          const newEmbedding = await embedText(embText);
+          updateData.embedding = JSON.stringify(newEmbedding);
+        }
+      } catch (e) {
+        console.error('Re-embed error (non-fatal):', e);
       }
     }
 
