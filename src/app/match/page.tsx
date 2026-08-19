@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 
 export default function MatchPage() {
   const [topic, setTopic] = useState("");
+  const [sector, setSector] = useState("");
   const [description, setDescription] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [searched, setSearched] = useState(false);
@@ -14,7 +15,10 @@ export default function MatchPage() {
       const r = await fetch("/api/match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, description }),
+        body: JSON.stringify({
+          topic,
+          description: [sector && `Sektor: ${sector}`, description].filter(Boolean).join('\n'),
+        }),
       });
       return r.json();
     },
@@ -74,8 +78,8 @@ export default function MatchPage() {
               <input
                 className="field-input"
                 placeholder="mis: Geothermal, Migas, Petrokimia…"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={sector}
+                onChange={(e) => setSector(e.target.value)}
               />
             </div>
           </div>
