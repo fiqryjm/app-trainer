@@ -22,7 +22,8 @@ Ekstrak informasi berikut dari CV ini dan KEMBALIKAN HANYA JSON (tanpa markdown,
   "summary": string,  // ringkasan 2-3 kalimat keahlian instruktur
   "competencies": string[],  // bidang keahlian, mis: ["Geothermal","Instrumentation","Q-HSE"], gunakan Bahasa Indonesia yang umum
   "certifications": [{"name": string, "issuer": string|null, "year": number|null}],
-  "experience_highlights": string[]  // 3-5 poin pengalaman relevan
+  "experience_highlights": string[],  // 3-5 poin pengalaman relevan
+  "teaching_topics": string[]  // judul-judul training/kelas/mata diklat yang pernah DIBAWAKAN sebagai instruktur/trainer, mis: ["Distributed Control Systems (DCS)","PLC Basic & Advanced","Process Safety Management"]. Kosongkan array jika tidak ada riwayat mengajar.
 }
 Jika tidak yakin, gunakan null. Pastikan JSON valid.`;
 

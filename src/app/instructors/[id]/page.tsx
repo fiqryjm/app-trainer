@@ -127,6 +127,7 @@ function ReuploadCVModal({ insId, insName, onClose, onUpdated }: { insId: string
         ...res.extracted,
         certifications: res.extracted.certifications || [],
         competencies: res.extracted.competencies || [],
+        teaching_topics: res.extracted.teaching_topics || [],
         cv_file_url: res.cv_file_url || "",
       });
       setStep("review");
@@ -144,6 +145,7 @@ function ReuploadCVModal({ insId, insName, onClose, onUpdated }: { insId: string
       availability: draft.availability,
       competencies: draft.competencies,
       certifications: draft.certifications,
+      teaching_topics: draft.teaching_topics || [],
     };
     if (draft.cv_file_url) payload.cv_file_url = draft.cv_file_url;
 
@@ -209,7 +211,7 @@ function ReuploadCVModal({ insId, insName, onClose, onUpdated }: { insId: string
             <textarea className="field-textarea" rows={3} value={draft.summary ?? ""} onChange={(e) => setDraft({ ...draft, summary: e.target.value })} />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
             <div className="field">
               <label className="field-label">Kompetensi (satu per baris)</label>
               <textarea
@@ -230,6 +232,20 @@ function ReuploadCVModal({ insId, insName, onClose, onUpdated }: { insId: string
             </div>
           </div>
 
+          <div className="field" style={{ marginBottom: 16 }}>
+            <label className="field-label">📋 Pengalaman Mengajar (satu topik per baris)</label>
+            <textarea
+              className="field-textarea" rows={6}
+              style={{ fontFamily: "monospace", fontSize: 12.5 }}
+              placeholder={"Distributed Control Systems (DCS): Theory & Practice\nPLC Basic & Advanced\nProcess Safety Management"}
+              value={(draft.teaching_topics || []).join("\n")}
+              onChange={(e) => setDraft({ ...draft, teaching_topics: e.target.value.split("\n").map((s: string) => s.trim()).filter(Boolean) })}
+            />
+            <p style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 4, marginBottom: 0 }}>
+              {(draft.teaching_topics || []).length} topik ditemukan dari CV
+            </p>
+          </div>
+
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={doSave} disabled={saving} className="btn btn-success">
               {saving ? <><span className="spinner" /> Menyimpan…</> : <>💾 Simpan Update CV</>}
@@ -244,7 +260,7 @@ function ReuploadCVModal({ insId, insName, onClose, onUpdated }: { insId: string
           <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
           <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 8px" }}>Data berhasil diperbarui!</h3>
           <p style={{ fontSize: 13.5, color: "var(--text-secondary)", margin: "0 0 20px" }}>
-            Kompetensi, sertifikasi, dan ringkasan instruktur sudah diupdate.
+            Kompetensi, sertifikasi, pengalaman mengajar, dan ringkasan instruktur sudah diupdate.
           </p>
           <button onClick={onClose} className="btn btn-primary">Selesai</button>
         </div>

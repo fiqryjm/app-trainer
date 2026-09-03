@@ -43,6 +43,7 @@ export default function InstructorsPage() {
         ...res.extracted,
         experience_highlights: res.extracted.experience_highlights || [],
         certifications: res.extracted.certifications || [],
+        teaching_topics: res.extracted.teaching_topics || [],
       });
       setCvUrl(res.cv_file_url || "");
     } else {
@@ -175,7 +176,7 @@ export default function InstructorsPage() {
               />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 14 }}>
               <div className="field">
                 <label className="field-label">Kompetensi (pisahkan koma)</label>
                 <textarea
@@ -204,6 +205,23 @@ export default function InstructorsPage() {
                   }
                 />
               </div>
+            </div>
+
+            <div className="field" style={{ marginBottom: 20 }}>
+              <label className="field-label">📋 Pengalaman Mengajar (satu topik per baris)</label>
+              <textarea
+                className="field-textarea"
+                rows={5}
+                style={{ fontFamily: "monospace", fontSize: 12.5 }}
+                placeholder={"Distributed Control Systems (DCS): Theory & Practice\nPLC Basic & Advanced\nProcess Safety Management"}
+                value={(draft.teaching_topics || []).join("\n")}
+                onChange={(e) =>
+                  setDraft({ ...draft, teaching_topics: e.target.value.split("\n").map((s: string) => s.trim()).filter(Boolean) })
+                }
+              />
+              <p style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 4, marginBottom: 0 }}>
+                {(draft.teaching_topics || []).length} topik ditemukan dari CV
+              </p>
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>
