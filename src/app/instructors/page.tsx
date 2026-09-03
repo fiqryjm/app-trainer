@@ -152,16 +152,17 @@ export default function InstructorsPage() {
               <Field label="Pengalaman (tahun)" value={draft.years_exp ?? ""} type="number" onChange={(v) => setDraft({ ...draft, years_exp: v })} />
               <Field label="Lokasi" value={draft.location ?? ""} onChange={(v) => setDraft({ ...draft, location: v })} />
               <div className="field">
-                <label className="field-label">Ketersediaan</label>
+                <label className="field-label">Label</label>
                 <select
                   className="field-input"
                   value={draft.availability ?? ""}
                   onChange={(e) => setDraft({ ...draft, availability: e.target.value })}
                 >
                   <option value="">— Pilih —</option>
-                  <option value="Available">Available</option>
-                  <option value="Booked">Booked</option>
-                  <option value="Part-time">Part-time</option>
+                  <option value="Favorite">Favorite</option>
+                  <option value="Biasa">Biasa</option>
+                  <option value="Yellow">Yellow</option>
+                  <option value="Black List">Black List</option>
                 </select>
               </div>
             </div>
@@ -282,7 +283,7 @@ export default function InstructorsPage() {
                   <th>Kompetensi</th>
                   <th>Sertifikasi</th>
                   <th>Pengalaman</th>
-                  <th>Ketersediaan</th>
+                  <th>Label</th>
                   <th></th>
                 </tr>
               </thead>

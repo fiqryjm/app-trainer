@@ -196,12 +196,13 @@ function ReuploadCVModal({ insId, insName, onClose, onUpdated }: { insId: string
               <input type="number" className="field-input" value={draft.years_exp ?? ""} onChange={(e) => setDraft({ ...draft, years_exp: e.target.value })} />
             </div>
             <div className="field">
-              <label className="field-label">Ketersediaan</label>
+              <label className="field-label">Label</label>
               <select className="field-input" value={draft.availability ?? ""} onChange={(e) => setDraft({ ...draft, availability: e.target.value })}>
                 <option value="">— Pilih —</option>
-                <option value="Available">Available</option>
-                <option value="Booked">Booked</option>
-                <option value="Part-time">Part-time</option>
+                <option value="Favorite">Favorite</option>
+                <option value="Biasa">Biasa</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Black List">Black List</option>
               </select>
             </div>
           </div>
@@ -380,18 +381,20 @@ export default function InstructorDetailPage() {
     setEditing(true);
   };
 
-  const availColor = (a?: string) => {
+  const labelColor = (a?: string) => {
     const v = a?.toLowerCase();
-    if (v === "available") return "avail-available";
-    if (v === "booked") return "avail-booked";
+    if (v === "favorite") return "avail-available";
+    if (v === "black list") return "avail-booked";
+    if (v === "yellow") return "avail-part";
     return "avail-part";
   };
 
-  const availBadgeStyle = (a?: string) => {
+  const labelBadgeStyle = (a?: string) => {
     const v = a?.toLowerCase();
-    if (v === "available") return { background: "#f0fdf4", color: "#16a34a" };
-    if (v === "booked") return { background: "#fef2f2", color: "#dc2626" };
-    return { background: "#fffbeb", color: "#92400e" };
+    if (v === "favorite") return { background: "#f0fdf4", color: "#16a34a" };
+    if (v === "black list") return { background: "#fef2f2", color: "#dc2626" };
+    if (v === "yellow") return { background: "#fffbeb", color: "#92400e" };
+    return { background: "#f3f4f6", color: "#6b7280" };
   };
 
   if (isLoading) return (
@@ -438,8 +441,8 @@ export default function InstructorDetailPage() {
                   {ins.years_exp && <span className="badge badge-purple">🎓 {ins.years_exp} tahun pengalaman</span>}
                   {ins.location && <span className="badge badge-gray">📍 {ins.location}</span>}
                   {ins.availability && (
-                    <span className="badge" style={availBadgeStyle(ins.availability)}>
-                      <span className={`avail-dot ${availColor(ins.availability)}`} style={{ marginRight: 5 }} />
+                    <span className="badge" style={labelBadgeStyle(ins.availability)}>
+                      <span className={`avail-dot ${labelColor(ins.availability)}`} style={{ marginRight: 5 }} />
                       {ins.availability}
                     </span>
                   )}
@@ -510,12 +513,13 @@ export default function InstructorDetailPage() {
                 </div>
               ))}
               <div className="field">
-                <label className="field-label">Ketersediaan</label>
+                <label className="field-label">Label</label>
                 <select className="field-input" value={form.availability} onChange={(e) => setForm({ ...form, availability: e.target.value })}>
                   <option value="">— Pilih —</option>
-                  <option value="Available">Available</option>
-                  <option value="Booked">Booked</option>
-                  <option value="Part-time">Part-time</option>
+                  <option value="Favorite">Favorite</option>
+                  <option value="Biasa">Biasa</option>
+                  <option value="Yellow">Yellow</option>
+                  <option value="Black List">Black List</option>
                 </select>
               </div>
             </div>

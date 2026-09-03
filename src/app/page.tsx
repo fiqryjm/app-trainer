@@ -101,7 +101,7 @@ export default function Dashboard() {
                   <th>Nama</th>
                   <th>Kompetensi Unggulan</th>
                   <th>Pengalaman</th>
-                  <th>Ketersediaan</th>
+                  <th>Label</th>
                 </tr>
               </thead>
               <tbody>
