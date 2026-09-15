@@ -81,18 +81,70 @@ function EditCertificationsModal({ ins, onClose, onSave }: { ins: any; onClose: 
   const update = (i: number, field: string, val: string) =>
     setCerts(certs.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
 
+  const moveUp = (i: number) => {
+    if (i <= 0) return;
+    const next = [...certs];
+    const temp = next[i];
+    next[i] = next[i - 1];
+    next[i - 1] = temp;
+    setCerts(next);
+  };
+
+  const moveDown = (i: number) => {
+    if (i >= certs.length - 1) return;
+    const next = [...certs];
+    const temp = next[i];
+    next[i] = next[i + 1];
+    next[i + 1] = temp;
+    setCerts(next);
+  };
+
   return (
     <Modal title="✏️ Edit Sertifikasi" onClose={onClose} wide>
       <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16, marginTop: 0 }}>
-        Isi nama, penerbit, dan tahun setiap sertifikasi. Data lama akan diganti.
+        Isi nama, penerbit, dan tahun setiap sertifikasi. Gunakan panah ▲/▼ untuk mengurutkan posisi. Data lama akan diganti.
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 380, overflowY: "auto" }}>
         {certs.map((c, i) => (
-          <div key={i} style={{ display: "grid", gridTemplateColumns: "2fr 2fr 90px 36px", gap: 8, alignItems: "center" }}>
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "56px 2fr 2fr 85px 36px", gap: 8, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 3 }}>
+              <button
+                type="button"
+                onClick={() => moveUp(i)}
+                disabled={i === 0}
+                title="Geser ke atas"
+                style={{
+                  width: 26, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "1px solid var(--border)", background: "var(--surface)",
+                  color: i === 0 ? "var(--text-muted)" : "var(--brand)",
+                  opacity: i === 0 ? 0.35 : 1,
+                  borderRadius: 6, cursor: i === 0 ? "default" : "pointer",
+                  fontSize: 11, fontWeight: 700, padding: 0
+                }}
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                onClick={() => moveDown(i)}
+                disabled={i === certs.length - 1}
+                title="Geser ke bawah"
+                style={{
+                  width: 26, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "1px solid var(--border)", background: "var(--surface)",
+                  color: i === certs.length - 1 ? "var(--text-muted)" : "var(--brand)",
+                  opacity: i === certs.length - 1 ? 0.35 : 1,
+                  borderRadius: 6, cursor: i === certs.length - 1 ? "default" : "pointer",
+                  fontSize: 11, fontWeight: 700, padding: 0
+                }}
+              >
+                ▼
+              </button>
+            </div>
             <input className="field-input" placeholder="Nama sertifikasi" value={c.name} onChange={(e) => update(i, "name", e.target.value)} style={{ fontSize: 13 }} />
             <input className="field-input" placeholder="Penerbit / Issuer" value={c.issuer} onChange={(e) => update(i, "issuer", e.target.value)} style={{ fontSize: 13 }} />
             <input className="field-input" placeholder="Tahun" type="number" value={c.year} onChange={(e) => update(i, "year", e.target.value)} style={{ fontSize: 13 }} />
-            <button onClick={() => remove(i)} style={{ border: "none", background: "#fef2f2", color: "var(--danger)", borderRadius: 6, cursor: "pointer", padding: "8px", fontSize: 14 }}>🗑</button>
+            <button onClick={() => remove(i)} title="Hapus baris" style={{ border: "none", background: "#fef2f2", color: "var(--danger)", borderRadius: 6, cursor: "pointer", padding: "8px", fontSize: 14 }}>🗑</button>
           </div>
         ))}
       </div>
@@ -372,6 +424,21 @@ export default function InstructorDetailPage() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["instructors"] }); router.push("/instructors"); },
   });
 
+  const handleMoveCert = (idx: number, direction: "up" | "down") => {
+    const list = [...(ins?.certifications || [])];
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= list.length) return;
+    const temp = list[idx];
+    list[idx] = list[targetIdx];
+    list[targetIdx] = temp;
+
+    saveCertsMut.mutate(list.map((c: any) => ({
+      name: c.name,
+      issuer: c.issuer ?? "",
+      year: c.year ? String(c.year) : "",
+    })));
+  };
+
   const startEdit = () => {
     setForm({
       name: ins.name ?? "", email: ins.email ?? "", phone: ins.phone ?? "",
@@ -460,7 +527,7 @@ export default function InstructorDetailPage() {
                 </a>
               )}
               {!editing && <button onClick={startEdit} className="btn btn-primary">✏️ Edit Profil</button>}
-              <button onClick={() => setConfirmDelete(true)} className="btn btn-outline" style={{ color: "var(--danger)", borderColor: "#fecaca" }}>🗑️</button>
+              <button onClick={() => setConfirmDelete(true)} className="btn btn-outline" style={{ color: "var(--danger)", borderColor: "#fecaca" }}>🗑️ Hapus</button>
             </div>
           </div>
 
@@ -585,17 +652,59 @@ export default function InstructorDetailPage() {
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {(ins.certifications || []).map((c: any) => (
-                  <div key={c.id} style={{
-                    display: "flex", alignItems: "flex-start", gap: 10,
-                    padding: "10px 12px", background: "var(--surface-2)",
+                {(ins.certifications || []).map((c: any, idx: number, arr: any[]) => (
+                  <div key={c.id || idx} style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                    padding: "10px 14px", background: "var(--surface-2)",
                     borderRadius: 8, border: "1px solid var(--border)",
+                    transition: "all 0.15s ease",
                   }}>
-                    <span style={{ fontSize: 18, flexShrink: 0 }}>🎖️</span>
-                    <div>
-                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{c.name}</div>
-                      {c.issuer && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{c.issuer}</div>}
-                      {c.year && <div style={{ fontSize: 11, color: "var(--brand)", marginTop: 2, fontWeight: 500 }}>{c.year}</div>}
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10, flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>🎖️</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 600, wordBreak: "break-word" }}>{c.name}</div>
+                        {c.issuer && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{c.issuer}</div>}
+                        {c.year && <div style={{ fontSize: 11, color: "var(--brand)", marginTop: 2, fontWeight: 500 }}>{c.year}</div>}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3, flexShrink: 0 }}>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCert(idx, "up")}
+                        disabled={idx === 0 || saveCertsMut.isPending}
+                        title="Geser posisi ke atas"
+                        style={{
+                          width: 28, height: 24, display: "flex", alignItems: "center", justifyContent: "center",
+                          border: "1px solid var(--border)", background: "var(--surface)",
+                          borderRadius: 4,
+                          cursor: idx === 0 || saveCertsMut.isPending ? "not-allowed" : "pointer",
+                          color: idx === 0 ? "var(--text-muted)" : "var(--brand)",
+                          opacity: idx === 0 ? 0.35 : 1,
+                          fontSize: 11, fontWeight: 700, padding: 0,
+                          transition: "all 0.12s ease",
+                        }}
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCert(idx, "down")}
+                        disabled={idx === arr.length - 1 || saveCertsMut.isPending}
+                        title="Geser posisi ke bawah"
+                        style={{
+                          width: 28, height: 24, display: "flex", alignItems: "center", justifyContent: "center",
+                          border: "1px solid var(--border)", background: "var(--surface)",
+                          borderRadius: 4,
+                          cursor: idx === arr.length - 1 || saveCertsMut.isPending ? "not-allowed" : "pointer",
+                          color: idx === arr.length - 1 ? "var(--text-muted)" : "var(--brand)",
+                          opacity: idx === arr.length - 1 ? 0.35 : 1,
+                          fontSize: 11, fontWeight: 700, padding: 0,
+                          transition: "all 0.12s ease",
+                        }}
+                      >
+                        ▼
+                      </button>
                     </div>
                   </div>
                 ))}

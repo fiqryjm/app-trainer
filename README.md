@@ -43,3 +43,7 @@ npm run dev
 
 Catatan: embedding disimpan sebagai `vector(768)` di kolom `Instructor.embedding`.
 Untuk 100+ instruktur, similarity dihitung in-memory (cosine) — cukup cepat.
+
+
+
+scp deploy.sh user@IP_VPS:~/app/app-trainer/

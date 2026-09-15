@@ -16,6 +16,7 @@ export default function InstructorsPage() {
   const [draft, setDraft] = useState<any | null>(null);
   const [cvUrl, setCvUrl] = useState<string>("");
   const [filterQ, setFilterQ] = useState("");
+  const [deletingInstructor, setDeletingInstructor] = useState<any | null>(null);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["instructors"],
@@ -65,6 +66,24 @@ export default function InstructorsPage() {
       setFile(null);
       setCvUrl("");
       refetch();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const r = await fetch(`/api/instructors/${id}`, { method: "DELETE" });
+      if (!r.ok) {
+        const res = await r.json().catch(() => ({}));
+        throw new Error(res.error || "Gagal menghapus instruktur");
+      }
+      return r.json();
+    },
+    onSuccess: () => {
+      setDeletingInstructor(null);
+      refetch();
+    },
+    onError: (err: any) => {
+      alert(err.message || "Gagal menghapus instruktur");
     },
   });
 
@@ -284,7 +303,7 @@ export default function InstructorsPage() {
                   <th>Sertifikasi</th>
                   <th>Pengalaman</th>
                   <th>Label</th>
-                  <th></th>
+                  <th style={{ textAlign: "right", paddingRight: 16 }}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -328,9 +347,26 @@ export default function InstructorsPage() {
                       )}
                     </td>
                     <td onClick={(e) => e.stopPropagation()}>
-                      <Link href={`/instructors/${i.id}`} className="btn btn-outline" style={{ padding: "5px 12px", fontSize: 12 }}>
-                        Detail →
-                      </Link>
+                      <div style={{ display: "flex", gap: 6, alignItems: "center", justifyContent: "flex-end" }}>
+                        <Link href={`/instructors/${i.id}`} className="btn btn-outline" style={{ padding: "5px 12px", fontSize: 12 }}>
+                          Detail →
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => setDeletingInstructor(i)}
+                          title={`Hapus ${i.name}`}
+                          className="btn btn-outline"
+                          style={{
+                            padding: "5px 10px",
+                            fontSize: 12,
+                            color: "var(--danger)",
+                            borderColor: "#fecaca",
+                            background: "#fff5f5"
+                          }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -339,6 +375,68 @@ export default function InstructorsPage() {
           </div>
         )}
       </div>
+
+      {deletingInstructor && (
+        <div
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,.55)",
+            display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+            padding: 20,
+          }}
+          onClick={(e) => e.target === e.currentTarget && !deleteMutation.isPending && setDeletingInstructor(null)}
+        >
+          <div className="card" style={{ width: "100%", maxWidth: 460, margin: 0, overflow: "hidden" }}>
+            <div className="card-header" style={{ borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 style={{ margin: 0, fontSize: 16 }}>🗑️ Hapus Instruktur</h2>
+              <button
+                type="button"
+                onClick={() => !deleteMutation.isPending && setDeletingInstructor(null)}
+                style={{ border: "none", background: "none", cursor: "pointer", fontSize: 20, color: "var(--text-muted)", padding: 0 }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="card-body" style={{ padding: "20px 24px" }}>
+              <div style={{ textAlign: "center", padding: "8px 0 16px" }}>
+                <div style={{ fontSize: 42, marginBottom: 12 }}>⚠️</div>
+                <h3 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700 }}>
+                  Hapus data instruktur ini?
+                </h3>
+                <p style={{ fontSize: 13.5, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
+                  Data <strong>{deletingInstructor.name}</strong> beserta semua kompetensi, sertifikasi, dan topik pengajarannya akan dihapus secara permanen.
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => deleteMutation.mutate(deletingInstructor.id)}
+                  disabled={deleteMutation.isPending}
+                  className="btn"
+                  style={{
+                    flex: 1,
+                    background: "var(--danger)",
+                    color: "white",
+                    justifyContent: "center",
+                    fontWeight: 600,
+                    padding: "9px 16px"
+                  }}
+                >
+                  {deleteMutation.isPending ? "Menghapus…" : "Ya, Hapus Permanen"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeletingInstructor(null)}
+                  disabled={deleteMutation.isPending}
+                  className="btn btn-outline"
+                  style={{ flex: 1, justifyContent: "center", padding: "9px 16px" }}
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

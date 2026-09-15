@@ -53,6 +53,7 @@ model InstructorCertification {
   issuer        String?
   year          Int?
   valid_until   DateTime?
+  order_index   Int?       @default(0)
   instructor    Instructor @relation(fields: [instructor_id], references: [id], onDelete: Cascade)
 }
 

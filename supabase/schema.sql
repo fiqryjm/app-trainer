@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS "InstructorCertification" (
   "name"          TEXT NOT NULL,
   "issuer"        TEXT,
   "year"          INTEGER,
-  "valid_until"   TIMESTAMP
+  "valid_until"   TIMESTAMP,
+  "order_index"   INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS "TrainingRequest" (

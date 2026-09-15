@@ -29,6 +29,13 @@ export async function GET(request: Request) {
       orderBy: { created_at: 'desc' },
       take: 100,
     });
+
+    instructors.forEach((i: any) => {
+      if (Array.isArray(i.certifications)) {
+        i.certifications.sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
+      }
+    });
+
     return NextResponse.json(instructors);
   } catch (e: any) {
     console.error('GET /api/instructors ERROR:', e);

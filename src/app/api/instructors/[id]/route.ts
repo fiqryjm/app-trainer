@@ -20,6 +20,9 @@ export async function GET(
     if (!instructor) {
       return NextResponse.json({ error: 'not found' }, { status: 404 });
     }
+    if (Array.isArray(instructor.certifications)) {
+      instructor.certifications.sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
+    }
     return NextResponse.json(instructor);
   } catch (e: any) {
     console.error('GET /api/instructors/[id] ERROR:', e);
@@ -43,12 +46,19 @@ export async function PATCH(
     // Basic field update
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
-    if (email !== undefined) updateData.email = email || null;
-    if (phone !== undefined) updateData.phone = phone || null;
+    if (email !== undefined) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
     if (years_exp !== undefined) updateData.years_exp = years_exp ? Number(years_exp) : null;
-    if (location !== undefined) updateData.location = location || null;
-    if (availability !== undefined) updateData.availability = availability || null;
-    if (summary !== undefined) updateData.summary = summary || null;
+    if (location !== undefined) updateData.location = location;
+    if (availability !== undefined) updateData.availability = availability;
+    if (summary !== undefined) updateData.summary = summary;
+
+    if (Object.keys(updateData).length > 0) {
+      await prisma.instructor.update({
+        where: { id },
+        data: updateData,
+      });
+    }
 
     // Update competencies if provided
     if (Array.isArray(competencies)) {
@@ -76,20 +86,20 @@ export async function PATCH(
     // Update certifications if provided
     if (Array.isArray(certifications)) {
       // Remove old certifications
-      await prisma.instructorCertification.deleteMany({ where: { instructor_id: id } });
+      await prisma.$executeRawUnsafe(`DELETE FROM "InstructorCertification" WHERE instructor_id = $1::uuid`, id);
 
-      // Create new certifications
-      for (const c of certifications) {
+      // Create new certifications with preserved order
+      for (let idx = 0; idx < certifications.length; idx++) {
+        const c = certifications[idx];
         const cname = typeof c === 'string' ? c.trim() : (c.name ?? '').trim();
         if (!cname) continue;
-        await prisma.instructorCertification.create({
-          data: {
-            instructor_id: id,
-            name: cname,
-            issuer: typeof c === 'object' ? (c.issuer ?? null) : null,
-            year: typeof c === 'object' && c.year ? Number(c.year) : null,
-          },
-        });
+        const issuer = typeof c === 'object' ? (c.issuer ?? null) : null;
+        const year = typeof c === 'object' && c.year ? Number(c.year) : null;
+        await prisma.$executeRawUnsafe(
+          `INSERT INTO "InstructorCertification" ("id", "instructor_id", "name", "issuer", "year", "order_index")
+           VALUES (gen_random_uuid(), $1::uuid, $2, $3, $4, $5)`,
+          id, cname, issuer, year, idx
+        );
       }
     }
 
@@ -140,6 +150,9 @@ export async function PATCH(
         teaching_topics: { orderBy: { created_at: 'asc' } },
       },
     });
+    if (Array.isArray(updated.certifications)) {
+      updated.certifications.sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
+    }
     return NextResponse.json(updated);
   } catch (e: any) {
     console.error('PATCH /api/instructors/[id] ERROR:', e);
