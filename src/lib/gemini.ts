@@ -19,13 +19,15 @@ Ekstrak informasi berikut dari CV ini dan KEMBALIKAN HANYA JSON (tanpa markdown,
   "years_exp": number|null,
   "location": string|null,
   "availability": string|null,  // "Available" / "Booked" / "Part-time" / null
-  "summary": string,  // ringkasan 2-3 kalimat keahlian instruktur
-  "competencies": string[],  // bidang keahlian, mis: ["Geothermal","Instrumentation","Q-HSE"], gunakan Bahasa Indonesia yang umum
-  "certifications": [{"name": string, "issuer": string|null, "year": number|null}],
-  "experience_highlights": string[],  // 3-5 poin pengalaman relevan
-  "teaching_topics": string[]  // judul-judul training/kelas/mata diklat yang pernah DIBAWAKAN sebagai instruktur/trainer, mis: ["Distributed Control Systems (DCS)","PLC Basic & Advanced","Process Safety Management"]. Kosongkan array jika tidak ada riwayat mengajar.
+  "summary": string,  // ringkasan 2-3 kalimat keahlian instruktur (sesuaikan dengan bahasa dominan di CV)
+  "competencies": string[],  // bidang keahlian/spesialisasi teknis (PERTAHANKAN bahasa asli di CV, JANGAN diterjemahkan/auto-translate. Contoh: jika CV bahasa Inggris gunakan istilah seperti "Process Safety Management", "Corrosion Engineering", bukan diterjemahkan)
+  "certifications": [{"name": string, "issuer": string|null, "year": number|null}],  // nama sertifikasi dan issuer ASLI persis seperti tertulis di CV (JANGAN diterjemahkan)
+  "experience_highlights": string[],  // 3-5 poin pengalaman relevan (pertahankan bahasa asli dokumen CV)
+  "teaching_topics": string[]  // judul-judul training/kelas/mata diklat yang pernah DIBAWAKAN sebagai instruktur/trainer (tulis persis sesuai nama topik/judul di CV, JANGAN diterjemahkan). Kosongkan array jika tidak ada riwayat mengajar.
 }
-Jika tidak yakin, gunakan null. Pastikan JSON valid.`;
+ATURAN PENTING BAHASA:
+- JANGAN auto-translate istilah teknis, sertifikasi, kompetensi, nama instansi/issuer, atau topik pelatihan ke Bahasa Indonesia jika dokumen aslinya berbahasa Inggris. Gunakan bahasa asli yang tertera pada CV.
+- Jika tidak yakin, gunakan null. Pastikan JSON valid.`;
 
   const body = {
     contents: [
