@@ -10,8 +10,7 @@ export async function extractCvWithGemini(
 ): Promise<any> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${EXTRACT_MODEL}:generateContent?key=${GEMINI_KEY}`;
 
-  const prompt = `Anda adalah ekstraktor CV profesional untuk perusahaan training (FJM) yang fokus sektor energi (migas, geothermal, pembangkit, petrokimia, mining). 
-Ekstrak informasi berikut dari CV ini dan KEMBALIKAN HANYA JSON (tanpa markdown, tanpa teks lain):
+  const prompt = `Extract structured information from this CV. Return ONLY a JSON object matching this schema:
 {
   "name": string,
   "email": string|null,
@@ -19,17 +18,35 @@ Ekstrak informasi berikut dari CV ini dan KEMBALIKAN HANYA JSON (tanpa markdown,
   "years_exp": number|null,
   "location": string|null,
   "availability": string|null,  // "Available" / "Booked" / "Part-time" / null
-  "summary": string,  // ringkasan 2-3 kalimat keahlian instruktur (sesuaikan dengan bahasa dominan di CV)
-  "competencies": string[],  // bidang keahlian/spesialisasi teknis (PERTAHANKAN bahasa asli di CV, JANGAN diterjemahkan/auto-translate. Contoh: jika CV bahasa Inggris gunakan istilah seperti "Process Safety Management", "Corrosion Engineering", bukan diterjemahkan)
-  "certifications": [{"name": string, "issuer": string|null, "year": number|null}],  // nama sertifikasi dan issuer ASLI persis seperti tertulis di CV (JANGAN diterjemahkan)
-  "experience_highlights": string[],  // 3-5 poin pengalaman relevan (pertahankan bahasa asli dokumen CV)
-  "teaching_topics": string[]  // judul-judul training/kelas/mata diklat yang pernah DIBAWAKAN sebagai instruktur/trainer (tulis persis sesuai nama topik/judul di CV, JANGAN diterjemahkan). Kosongkan array jika tidak ada riwayat mengajar.
+  "summary": string,  // 2-3 sentences profile summary in the CV's original language (DO NOT translate)
+  "competencies": string[],  // concise technical skills/competencies in the CV's original language. If CV is in English, write in English (e.g. ["Geothermal Exploration", "Well Testing", "Geochemistry", "Reservoir Engineering"]). NEVER TRANSLATE TO INDONESIAN!
+  "certifications": [{"name": string, "issuer": string|null, "year": number|null}],  // exact certification and issuer names as written in CV (DO NOT translate)
+  "experience_highlights": string[],  // 3-5 key career highlights in the CV's original language (DO NOT translate)
+  "teaching_topics": string[]  // course/class/training titles taught as an instructor/trainer verbatim as written in the CV (DO NOT translate). Empty array if none.
 }
-ATURAN PENTING BAHASA:
-- JANGAN auto-translate istilah teknis, sertifikasi, kompetensi, nama instansi/issuer, atau topik pelatihan ke Bahasa Indonesia jika dokumen aslinya berbahasa Inggris. Gunakan bahasa asli yang tertera pada CV.
-- Jika tidak yakin, gunakan null. Pastikan JSON valid.`;
+
+CRITICAL RULES:
+1. STRICT ZERO-TRANSLATION POLICY: Do NOT translate between English and Indonesian.
+   - If the CV is in English, all extracted items (competencies, topics, certifications, summary) MUST REMAIN IN ENGLISH.
+   - For example: write "Geothermal Exploration & Development" NOT "Eksplorasi & Pengembangan Panas Bumi", "Well Testing" NOT "Uji Sumur", "Corrosion & Scaling" NOT "Pengerakan & Korosi", "Project Management" NOT "Manajemen Proyek".
+   - If the CV is in Indonesian, keep it in Indonesian.
+2. If unsure, use null. Ensure the JSON is valid.`;
 
   const body = {
+    systemInstruction: {
+      parts: [
+        {
+          text: `You are an expert CV and resume extraction engine for an energy & engineering training company (FJM).
+Your primary mandate is accurate extraction without language transformation.
+
+ABSOLUTE LANGUAGE PRESERVATION DIRECTIVE:
+- Identify the language of the source CV.
+- Extract all fields strictly in their ORIGINAL LANGUAGE.
+- NEVER TRANSLATE text from English to Indonesian or vice-versa.
+- Technical competencies, certification titles, issuing bodies, course syllabus topics, and summaries must preserve the phrasing and language used in the CV document.`,
+        },
+      ],
+    },
     contents: [
       {
         parts: [
