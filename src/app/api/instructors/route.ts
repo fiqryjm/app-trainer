@@ -82,12 +82,12 @@ export async function POST(request: Request) {
     const instructor = await prisma.instructor.create({
       data: {
         name,
-        email,
-        phone,
+        email: email && typeof email === 'string' && email.trim() ? email.trim() : null,
+        phone: phone && typeof phone === 'string' && phone.trim() ? phone.trim() : null,
         years_exp: years_exp ? Number(years_exp) : null,
-        location,
-        availability,
-        summary,
+        location: location && typeof location === 'string' && location.trim() ? location.trim() : null,
+        availability: availability && typeof availability === 'string' && availability.trim() ? availability.trim() : null,
+        summary: summary && typeof summary === 'string' && summary.trim() ? summary.trim() : null,
         cv_file_url,
         cv_raw_text,
         embedding: embedding ? JSON.stringify(embedding) : undefined,

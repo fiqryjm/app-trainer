@@ -45,20 +45,13 @@ export async function PATCH(
 
     // Basic field update
     const updateData: any = {};
-    if (name !== undefined) updateData.name = name;
-    if (email !== undefined) updateData.email = email;
-    if (phone !== undefined) updateData.phone = phone;
-    if (years_exp !== undefined) updateData.years_exp = years_exp ? Number(years_exp) : null;
-    if (location !== undefined) updateData.location = location;
-    if (availability !== undefined) updateData.availability = availability;
-    if (summary !== undefined) updateData.summary = summary;
-
-    if (Object.keys(updateData).length > 0) {
-      await prisma.instructor.update({
-        where: { id },
-        data: updateData,
-      });
-    }
+    if (name !== undefined) updateData.name = typeof name === 'string' ? name.trim() : name;
+    if (email !== undefined) updateData.email = email && typeof email === 'string' && email.trim() ? email.trim() : null;
+    if (phone !== undefined) updateData.phone = phone && typeof phone === 'string' && phone.trim() ? phone.trim() : null;
+    if (years_exp !== undefined) updateData.years_exp = years_exp !== "" && years_exp !== null && years_exp !== undefined ? Number(years_exp) : null;
+    if (location !== undefined) updateData.location = location && typeof location === 'string' && location.trim() ? location.trim() : null;
+    if (availability !== undefined) updateData.availability = availability && typeof availability === 'string' && availability.trim() ? availability.trim() : null;
+    if (summary !== undefined) updateData.summary = summary && typeof summary === 'string' && summary.trim() ? summary.trim() : null;
 
     // Update competencies if provided
     if (Array.isArray(competencies)) {

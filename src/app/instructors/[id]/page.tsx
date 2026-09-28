@@ -375,7 +375,9 @@ export default function InstructorDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      return r.json();
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Gagal menyimpan perubahan");
+      return data;
     },
     onSuccess: () => { invalidate(); setEditing(false); },
   });
@@ -387,7 +389,9 @@ export default function InstructorDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ competencies }),
       });
-      return r.json();
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Gagal menyimpan kompetensi");
+      return data;
     },
     onSuccess: () => { invalidate(); setShowEditComps(false); },
   });
@@ -399,7 +403,9 @@ export default function InstructorDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ certifications }),
       });
-      return r.json();
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Gagal menyimpan sertifikasi");
+      return data;
     },
     onSuccess: () => { invalidate(); setShowEditCerts(false); },
   });
@@ -411,7 +417,9 @@ export default function InstructorDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teaching_topics }),
       });
-      return r.json();
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Gagal menyimpan topik mengajar");
+      return data;
     },
     onSuccess: () => { invalidate(); setShowEditTeaching(false); },
   });
@@ -419,7 +427,9 @@ export default function InstructorDetailPage() {
   const deleteMut = useMutation({
     mutationFn: async () => {
       const r = await fetch(`/api/instructors/${id}`, { method: "DELETE" });
-      return r.json();
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Gagal menghapus instruktur");
+      return data;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["instructors"] }); router.push("/instructors"); },
   });
@@ -440,6 +450,7 @@ export default function InstructorDetailPage() {
   };
 
   const startEdit = () => {
+    editMut.reset();
     setForm({
       name: ins.name ?? "", email: ins.email ?? "", phone: ins.phone ?? "",
       years_exp: ins.years_exp ?? "", location: ins.location ?? "",
@@ -594,6 +605,11 @@ export default function InstructorDetailPage() {
               <label className="field-label">Ringkasan</label>
               <textarea className="field-textarea" rows={4} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />
             </div>
+            {editMut.isError && (
+              <div style={{ color: "var(--danger)", fontSize: 13, marginBottom: 14, padding: "10px 14px", background: "#fef2f2", borderRadius: 8, border: "1px solid #fecaca" }}>
+                ⚠️ {(editMut.error as Error)?.message || "Gagal menyimpan perubahan"}
+              </div>
+            )}
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => editMut.mutate(form)} disabled={editMut.isPending} className="btn btn-success">
                 {editMut.isPending ? <><span className="spinner" /> Menyimpan…</> : "💾 Simpan Perubahan"}
